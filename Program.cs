@@ -1,44 +1,43 @@
 ﻿using System;
-using MySql.Data.MySqlClient;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryConsoleApp
 {
     class Program
     {
-        private static string connectionString = "Server=localhost;Database=library_db;Uid=root;Pw=;";
-
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            using (var conn = new MySqlConnection(connectionString))
+            using (var db = new LibraryContext())
             {
-                conn.Open();
-
                 // 1. Отримання ВСІХ читачів
                 Console.WriteLine("=== ВСІ ЧИТАЧІ ===");
-                ExecuteQuery(conn, "SELECT TicketNumber, FullName, Address, Phone FROM Readers");
-
-                // 2. Історія видачі (виправлено b.BookID -> b.ID та r.ReaderID -> r.ID)
-                Console.WriteLine("\n=== ІСТОРІЯ ВИДАЧІ ===");
-                ExecuteQuery(conn, @"
-                    SELECT r.FullName, b.Title, l.IssueDate, IFNULL(l.ReturnDate, 'Ще в читача') AS Returned
-                    FROM Loans l
-                    JOIN Readers r ON l.ReaderID = r.ID
-                    JOIN Books b ON l.BookID = b.ID");
-            }
-        }
-
-        static void ExecuteQuery(MySqlConnection conn, string sql)
-        {
-            using (var cmd = new MySqlCommand(sql, conn))
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
+                var readers = db.Readers.ToList();
+                
+                foreach (var r in readers)
                 {
-                    for (int i = 0; i < reader.FieldCount; i++)
-                        Console.Write($"{reader.GetName(i)}: {reader[i]} | ");
-                    Console.WriteLine();
+                    Console.WriteLine($"TicketNumber: {r.TicketNumber} | FullName: {r.FullName} | Address: {r.Address} | Phone: {r.Phone} |");
+                }
+
+                // 2. Історія видачі (LINQ-запит замість JOIN SQL)
+                Console.WriteLine("\n=== ІСТОРІЯ ВИДАЧІ ===");
+                var loans = db.Loans
+                    .Include(l => l.Reader)
+                    .Include(l => l.Book)
+                    .Select(l => new
+                    {
+                        FullName = l.Reader.FullName,
+                        Title = l.Book.Title,
+                        IssueDate = l.IssueDate,
+                        Returned = l.ReturnDate.HasValue ? l.ReturnDate.Value.ToString("yyyy-MM-dd") : "Ще в читача"
+                    })
+                    .ToList();
+
+                foreach (var item in loans)
+                {
+                    Console.WriteLine($"FullName: {item.FullName} | Title: {item.Title} | IssueDate: {item.IssueDate:yyyy-MM-dd} | Returned: {item.Returned} |");
                 }
             }
         }
