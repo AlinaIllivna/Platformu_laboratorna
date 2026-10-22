@@ -1,0 +1,40 @@
+@page "{id:int}"
+@model LibraryRazorApp.Pages_Books.DeleteModel
+
+@{
+    ViewData["Title"] = "Видалення книги";
+}
+
+<h1>Видалення</h1>
+
+<h3>Ви впевнені, що хочете видалити цю книгу?</h3>
+<div>
+    <h4>Книга</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Назва
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.Title)
+        </dd>
+        <dt class="col-sm-2">
+            Автор
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.Author)
+        </dd>
+        <dt class="col-sm-2">
+            Рік видання
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Book.Year)
+        </dd>
+    </dl>
+    
+    <form method="post">
+        <input type="hidden" asp-for="Book.ID" />
+        <input type="submit" value="Видалити" class="btn btn-danger" /> |
+        <a asp-page="./Index">Назад до списку</a>
+    </form>
+</div>

@@ -1,0 +1,51 @@
+@page
+@model LibraryRazorApp.Pages_Loans.IndexModel
+
+@{
+    ViewData["Title"] = "Видачі книг";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-journal-check text-primary me-2"></i>Журнал видач</h2>
+    <a asp-page="Create" class="btn btn-primary btn-custom-primary">
+        <i class="bi bi-plus-lg me-1"></i> Нова видача
+    </a>
+</div>
+
+<div class="table-responsive table-custom">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Читач</th>
+                <th>Книга</th>
+                <th>Дата видачі</th>
+                <th>Дата повернення</th>
+                <th class="text-end pe-4">Дії</th>
+            </tr>
+        </thead>
+        <tbody>
+@foreach (var item in Model.Loan) {
+            <tr>
+                <td class="fw-bold">@(item.Reader?.FullName ?? $"Читач #{item.ReaderID}")</td>
+                <td>@(item.Book?.Title ?? $"Книга #{item.BookID}")</td>
+                <td>@item.IssueDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    @if (item.ReturnDate.HasValue)
+                    {
+                        <span class="badge bg-success">@item.ReturnDate.Value.ToString("yyyy-MM-dd")</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">На руках</span>
+                    }
+                </td>
+                <td class="text-end pe-4 action-links">
+                    <a asp-page="./Edit" asp-route-id="@item.ID" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                    <a asp-page="./Details" asp-route-id="@item.ID" class="btn btn-sm btn-outline-info"><i class="bi bi-info-circle"></i></a>
+                    <a asp-page="./Delete" asp-route-id="@item.ID" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+}
+        </tbody>
+    </table>
+</div>

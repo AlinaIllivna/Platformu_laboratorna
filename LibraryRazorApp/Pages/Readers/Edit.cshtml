@@ -1,0 +1,58 @@
+@page "{id:int}"
+@model LibraryRazorApp.Pages_Readers.EditModel
+
+@{
+    ViewData["Title"] = "Редагування читача";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-custom">
+            <h3 class="mb-4 text-warning"><i class="bi bi-pencil-square me-2"></i>Редагування читача</h3>
+
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Reader.ID" />
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Номер квитка</label>
+                    <input asp-for="Reader.TicketNumber" class="form-control" type="number" min="1" required />
+                    <span asp-validation-for="Reader.TicketNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">ПІБ читача</label>
+                    <input asp-for="Reader.FullName" class="form-control" required minlength="3" />
+                    <span asp-validation-for="Reader.FullName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Email</label>
+                    <input asp-for="Reader.Email" class="form-control" type="email" />
+                    <span asp-validation-for="Reader.Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Адреса</label>
+                    <input asp-for="Reader.Address" class="form-control" />
+                    <span asp-validation-for="Reader.Address" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="form-label fw-bold">Телефон</label>
+                    <input asp-for="Reader.Phone" class="form-control" type="tel" pattern="\+?\d{10,12}" />
+                    <span asp-validation-for="Reader.Phone" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-page="./Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Назад</a>
+                    <button type="submit" class="btn btn-warning text-white btn-custom-primary"><i class="bi bi-check-lg"></i> Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

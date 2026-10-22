@@ -1,0 +1,30 @@
+@page "{id:int}"
+@model LibraryRazorApp.Pages_Books.DetailsModel
+
+@{
+    ViewData["Title"] = "Деталі книги";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-custom">
+            <h3 class="mb-4 text-info"><i class="bi bi-book me-2"></i>Інформація про книгу</h3>
+
+            <dl class="row fs-6">
+                <dt class="col-sm-4 text-muted">Назва:</dt>
+                <dd class="col-sm-8 fw-bold">@Model.Book.Title</dd>
+
+                <dt class="col-sm-4 text-muted">Автор:</dt>
+                <dd class="col-sm-8">@Model.Book.Author</dd>
+
+                <dt class="col-sm-4 text-muted">Рік видання:</dt>
+                <dd class="col-sm-8"><span class="badge bg-secondary fs-6">@Model.Book.Year</span></dd>
+            </dl>
+
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                <a asp-page="./Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Назад</a>
+                <a asp-page="./Edit" asp-route-id="@Model.Book.ID" class="btn btn-warning text-white"><i class="bi bi-pencil"></i> Редагувати</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+@page "{id:int}"
+@model LibraryRazorApp.Pages_Readers.DeleteModel
+
+@{
+    ViewData["Title"] = "Видалення читача";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-custom border-danger border-top border-4">
+            <h3 class="mb-3 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Видалення читача</h3>
+            <p class="text-muted mb-4">Ви впевнені, що бажаєте видалити цього читача?</p>
+
+            <dl class="row fs-6">
+                <dt class="col-sm-4 text-muted">Номер квитка:</dt>
+                <dd class="col-sm-8"><span class="badge bg-secondary">@Model.Reader.TicketNumber</span></dd>
+
+                <dt class="col-sm-4 text-muted">ПІБ:</dt>
+                <dd class="col-sm-8 fw-bold">@Model.Reader.FullName</dd>
+            </dl>
+
+            <form method="post" class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <input type="hidden" asp-for="Reader.ID" />
+                <a asp-page="./Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Скасувати</a>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i> Видалити</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,46 @@
+@page "{id:int}"
+@model LibraryRazorApp.Pages_Books.EditModel
+
+@{
+    ViewData["Title"] = "Редагування книги";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card-custom">
+            <h3 class="mb-4 text-warning"><i class="bi bi-pencil-square me-2"></i>Редагування книги</h3>
+
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Book.ID" />
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Назва книги</label>
+                    <input asp-for="Book.Title" class="form-control" required />
+                    <span asp-validation-for="Book.Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold">Автор</label>
+                    <input asp-for="Book.Author" class="form-control" required />
+                    <span asp-validation-for="Book.Author" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="form-label fw-bold">Рік видання</label>
+                    <input asp-for="Book.Year" class="form-control" type="number" min="1000" max="2100" required />
+                    <span asp-validation-for="Book.Year" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-page="./Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Назад</a>
+                    <button type="submit" class="btn btn-warning text-white btn-custom-primary"><i class="bi bi-check-lg"></i> Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
