@@ -1,0 +1,99 @@
+@page "/"
+@page "/books"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@inject LibraryBlazorApp.Data.LibraryContext DbContext
+
+<div style="padding: 30px; max-width: 1000px; margin: 0 auto; font-family: sans-serif;">
+    <h3 style="margin-bottom: 25px; color: #333; font-weight: bold;">📚 Книги бібліотеки</h3>
+
+    @if (books == null)
+    {
+        <p><em>Завантаження...</em></p>
+    }
+    else
+    {
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden;">
+            <thead>
+                <tr style="background: #343a40; color: white; text-align: left;">
+                    <th style="padding: 12px 15px;">Назва</th>
+                    <th style="padding: 12px 15px;">Автор</th>
+                    <th style="padding: 12px 15px;">Рік</th>
+                    <th style="padding: 12px 15px; text-align: right;">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var book in books)
+                {
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 12px 15px; font-weight: 500;">@book.Title</td>
+                        <td style="padding: 12px 15px;">@book.Author</td>
+                        <td style="padding: 12px 15px;">@book.Year</td>
+                        <td style="padding: 12px 15px; text-align: right;">
+                            <button style="background: #ffc107; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-weight: 500;" @onclick="() => EditBook(book)">Редагувати</button>
+                            <button style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;" @onclick="() => DeleteBook(book.ID)">Видалити</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <h4 style="margin-bottom: 20px; color: #495057;">@(isEditing ? "✏️ Редагувати книгу" : "➕ Додати нову книгу")</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Назва:</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="currentBook.Title" placeholder="Введіть назву" />
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Автор:</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="currentBook.Author" placeholder="Введіть автора" />
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Рік:</label>
+                    <input type="number" style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="currentBook.Year" placeholder="Рік" />
+                </div>
+            </div>
+
+            <div>
+                <button style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;" @onclick="SaveBook">Зберегти</button>
+                @if (isEditing)
+                {
+                    <button style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: 600;" @onclick="CancelEdit">Скасувати</button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<LibraryBlazorApp.Models.Book>? books;
+    private LibraryBlazorApp.Models.Book currentBook = new();
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync() => await LoadBooks();
+    private async Task LoadBooks() => books = await DbContext.Books.ToListAsync();
+
+    private async Task SaveBook()
+    {
+        if (!string.IsNullOrWhiteSpace(currentBook.Title))
+        {
+            if (isEditing) DbContext.Books.Update(currentBook);
+            else DbContext.Books.Add(currentBook);
+
+            await DbContext.SaveChangesAsync();
+            currentBook = new();
+            isEditing = false;
+            await LoadBooks();
+        }
+    }
+
+    private void EditBook(LibraryBlazorApp.Models.Book book) { currentBook = book; isEditing = true; }
+    private void CancelEdit() { currentBook = new(); isEditing = false; }
+    private async Task DeleteBook(int id)
+    {
+        var book = await DbContext.Books.FindAsync(id);
+        if (book != null) { DbContext.Books.Remove(book); await DbContext.SaveChangesAsync(); await LoadBooks(); }
+    }
+}

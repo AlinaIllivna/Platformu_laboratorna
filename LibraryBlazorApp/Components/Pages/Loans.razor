@@ -1,0 +1,134 @@
+@page "/loans"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@inject LibraryBlazorApp.Data.LibraryContext DbContext
+
+<div style="padding: 30px; max-width: 1000px; margin: 0 auto; font-family: sans-serif;">
+    <h3 style="margin-bottom: 25px; color: #333; font-weight: bold;">📋 Видача книг (Loans)</h3>
+
+    @if (loans == null)
+    {
+        <p><em>Завантаження...</em></p>
+    }
+    else
+    {
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden;">
+            <thead>
+                <tr style="background: #343a40; color: white; text-align: left;">
+                    <th style="padding: 12px 15px;">Книга</th>
+                    <th style="padding: 12px 15px;">Читач</th>
+                    <th style="padding: 12px 15px;">Дата видачі</th>
+                    <th style="padding: 12px 15px;">Дата повернення</th>
+                    <th style="padding: 12px 15px; text-align: right;">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in loans)
+                {
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 12px 15px; font-weight: 500;">@(loan.Book?.Title ?? "Невідома книга")</td>
+                        <td style="padding: 12px 15px;">@(loan.Reader?.FullName ?? "Невідомий читач")</td>
+                        <td style="padding: 12px 15px;">@loan.IssueDate.ToShortDateString()</td>
+                        <td style="padding: 12px 15px;">
+                            @if (loan.ReturnDate == null)
+                            {
+                                <span style="background: #ffc107; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">Ще не повернено</span>
+                            }
+                            else
+                            {
+                                <span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500;">@loan.ReturnDate?.ToShortDateString()</span>
+                            }
+                        </td>
+                        <td style="padding: 12px 15px; text-align: right;">
+                            @if (loan.ReturnDate == null)
+                            {
+                                <button style="background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-weight: 500;" @onclick="() => ReturnBook(loan.ID)">Повернути</button>
+                            }
+                            <button style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;" @onclick="() => DeleteLoan(loan.ID)">Видалити</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <h4 style="margin-bottom: 20px; color: #495057;">➕ Оформити видачу книги</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Книга:</label>
+                    <select style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newLoan.BookID">
+                        <option value="0">-- Оберіть книгу --</option>
+                        @if (books != null)
+                        {
+                            @foreach (var book in books)
+                            {
+                                <option value="@book.ID">@book.Title</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Читач:</label>
+                    <select style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newLoan.ReaderID">
+                        <option value="0">-- Оберіть читача --</option>
+                        @if (readers != null)
+                        {
+                            @foreach (var reader in readers)
+                            {
+                                <option value="@reader.ID">@reader.FullName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Дата видачі:</label>
+                    <input type="date" style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newLoan.IssueDate" />
+                </div>
+            </div>
+
+            <div>
+                <button style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;" @onclick="AddLoan">Видати книгу</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<LibraryBlazorApp.Models.Loan>? loans;
+    private List<LibraryBlazorApp.Models.Book>? books;
+    private List<LibraryBlazorApp.Models.Reader>? readers;
+    private LibraryBlazorApp.Models.Loan newLoan = new() { IssueDate = DateTime.Today };
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        loans = await DbContext.Loans.Include(l => l.Book).Include(l => l.Reader).ToListAsync();
+        books = await DbContext.Books.ToListAsync();
+        readers = await DbContext.Readers.ToListAsync();
+    }
+
+    private async Task AddLoan()
+    {
+        if (newLoan.BookID > 0 && newLoan.ReaderID > 0)
+        {
+            DbContext.Loans.Add(newLoan);
+            await DbContext.SaveChangesAsync();
+            newLoan = new() { IssueDate = DateTime.Today };
+            await LoadData();
+        }
+    }
+
+    private async Task ReturnBook(int id)
+    {
+        var loan = await DbContext.Loans.FindAsync(id);
+        if (loan != null) { loan.ReturnDate = DateTime.Today; DbContext.Loans.Update(loan); await DbContext.SaveChangesAsync(); await LoadData(); }
+    }
+
+    private async Task DeleteLoan(int id)
+    {
+        var loan = await DbContext.Loans.FindAsync(id);
+        if (loan != null) { DbContext.Loans.Remove(loan); await DbContext.SaveChangesAsync(); await LoadData(); }
+    }
+}

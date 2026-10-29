@@ -1,0 +1,93 @@
+@page "/readers"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@inject LibraryBlazorApp.Data.LibraryContext DbContext
+
+<div style="padding: 30px; max-width: 1000px; margin: 0 auto; font-family: sans-serif;">
+    <h3 style="margin-bottom: 25px; color: #333; font-weight: bold;">👥 Читачі бібліотеки</h3>
+
+    @if (readers == null)
+    {
+        <p><em>Завантаження...</em></p>
+    }
+    else
+    {
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden;">
+            <thead>
+                <tr style="background: #343a40; color: white; text-align: left;">
+                    <th style="padding: 12px 15px;">Номер квитка</th>
+                    <th style="padding: 12px 15px;">ПІБ</th>
+                    <th style="padding: 12px 15px;">Email</th>
+                    <th style="padding: 12px 15px;">Телефон</th>
+                    <th style="padding: 12px 15px; text-align: right;">Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reader in readers)
+                {
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 12px 15px;">@reader.TicketNumber</td>
+                        <td style="padding: 12px 15px; font-weight: 500;">@reader.FullName</td>
+                        <td style="padding: 12px 15px;">@reader.Email</td>
+                        <td style="padding: 12px 15px;">@reader.Phone</td>
+                        <td style="padding: 12px 15px; text-align: right;">
+                            <button style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500;" @onclick="() => DeleteReader(reader.ID)">Видалити</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <h4 style="margin-bottom: 20px; color: #495057;">➕ Додати нового читача</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Номер квитка:</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newReader.TicketNumber" placeholder="Наприклад: 1" />
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">ПІБ:</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newReader.FullName" placeholder="Шевченко Тарас Григорович" />
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Email (формат: example@gmail.com):</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newReader.Email" placeholder="example@gmail.com" />
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">Телефон (формат: +380XXXXXXXXX):</label>
+                    <input style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px;" @bind="newReader.Phone" placeholder="+380991234567" />
+                </div>
+            </div>
+
+            <div>
+                <button style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;" @onclick="AddReader">Зберегти читача</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<LibraryBlazorApp.Models.Reader>? readers;
+    private LibraryBlazorApp.Models.Reader newReader = new();
+
+    protected override async Task OnInitializedAsync() => await LoadReaders();
+    private async Task LoadReaders() => readers = await DbContext.Readers.ToListAsync();
+
+    private async Task AddReader()
+    {
+        if (!string.IsNullOrWhiteSpace(newReader.FullName) && !string.IsNullOrWhiteSpace(newReader.TicketNumber))
+        {
+            DbContext.Readers.Add(newReader);
+            await DbContext.SaveChangesAsync();
+            newReader = new();
+            await LoadReaders();
+        }
+    }
+
+    private async Task DeleteReader(int id)
+    {
+        var reader = await DbContext.Readers.FindAsync(id);
+        if (reader != null) { DbContext.Readers.Remove(reader); await DbContext.SaveChangesAsync(); await LoadReaders(); }
+    }
+}
